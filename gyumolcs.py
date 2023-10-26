@@ -4,4 +4,3 @@ fruits.sort()
 for fruit in fruits:
     if fruit.startswith('a'):
         print(fruit)
-
