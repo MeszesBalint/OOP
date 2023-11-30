@@ -171,3 +171,128 @@ c) Fájlkezelés egyszerűsítése
 d) Végtelen ciklusok elkerülése
 Helyes válasz: Kódmegosztás és újrafelhasználhatóság
 """
+from abc import ABC, abstractmethod
+from datetime import datetime
+
+class Szoba(ABC):
+    @abstractmethod
+    def __init__(self, ar, szobaszam):
+        self.ar = ar
+        self.szobaszam = szobaszam
+
+class EgyagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(5000, szobaszam)
+
+class KetagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(8000, szobaszam)
+
+class Foglalas:
+    def __init__(self, szoba, nap):
+        self.szoba = szoba
+        self.nap = nap
+
+
+class Szalloda:
+    def __init__(self, nev):
+        self.nev = nev
+        self.szobak = []
+        self.foglalasok = []
+
+    def inditas(self):
+        szoba1 = EgyagyasSzoba(1)
+        szoba2 = KetagyasSzoba(2)
+        szoba3 = EgyagyasSzoba(3)
+
+        self.szobak.extend([szoba1, szoba2, szoba3])
+
+        self.foglalas(szoba1, "2024-06-01")
+        self.foglalas(szoba2, "2024-05-13")
+        self.foglalas(szoba3, "2024-03-30")
+        self.foglalas(szoba1, "2024-04-10")
+        self.foglalas(szoba2, "2024-02-06")
+
+    def foglalas(self, szoba, nap):
+        ma = datetime.now().strftime("%Y-%m-%d")
+        if nap <= ma:
+            return "A foglalás dátuma nem lehet a mai napnál korábbi."
+
+        for foglalas in self.foglalasok:
+            if foglalas.szoba == szoba and foglalas.nap == nap:
+                return "A szoba ezen a napon nem elérhető."
+
+        foglalas = Foglalas(szoba, nap)
+        self.foglalasok.append(foglalas)
+        return szoba.ar
+
+    def lemondas(self, foglalas):
+        if foglalas in self.foglalasok:
+            self.foglalasok.remove(foglalas)
+            return "A foglalás lemondva."
+        else:
+            return "A foglalás nem található."
+
+    def foglalasok_listazasa(self):
+        for foglalas in self.foglalasok:
+            print(f"Szoba száma: {foglalas.szoba.szobaszam}, Nap: {foglalas.nap}")
+
+    def futtat(self):
+        while True:
+            print("1. Foglalás")
+            print("2. Lemondás, előtte ajánlott listázni")
+            print("3. Foglalások listázása")
+            print("4. Kilépés")
+
+            valasztas = input("Írja be a választott művelet számát: ")
+
+            if valasztas == "1":
+                self.foglalas_menu()
+            elif valasztas == "2":
+                self.lemondas_menu()
+            elif valasztas == "3":
+                self.foglalasok_listazasa_menu()
+            elif valasztas == "4":
+                break
+            else:
+                print("Érvénytelen választás. Válasszon újra.")
+
+    def foglalas_menu(self):
+        szoba_szam = input("Adja meg a foglalandó szoba számát: ")
+        foglalas_datum = input("Adja meg a foglalás dátumát (YYYY-MM-DD): ")
+
+        szoba = self.szoba_kereses(int(szoba_szam))
+        if szoba:
+            ar = self.foglalas(szoba, foglalas_datum)
+            print(f"Az ár: {ar}")
+        else:
+            print("Érvénytelen szoba szám.")
+
+    def lemondas_menu(self):
+        foglalas_index = input("Adja meg a lemondandó foglalás indexét(0 = legtávolabbi foglalás): ")
+        foglalas = self.foglalas_kereses(int(foglalas_index))
+
+        if foglalas:
+            eredmeny = self.lemondas(foglalas)
+            print(eredmeny)
+        else:
+            print("Érvénytelen foglalás index.")
+
+    def foglalasok_listazasa_menu(self):
+        print("\nFoglalások listája:")
+        self.foglalasok_listazasa()
+
+    def szoba_kereses(self, szoba_szam):
+        for szoba in self.szobak:
+            if szoba.szobaszam == szoba_szam:
+                return szoba
+        return None
+
+    def foglalas_kereses(self, foglalas_index):
+        if 0 <= foglalas_index < len(self.foglalasok):
+            return self.foglalasok[foglalas_index]
+        return None
+
+szalloda = Szalloda("GDE Hotel")
+szalloda.inditas()
+szalloda.futtat()
